@@ -1,0 +1,115 @@
+
+.card-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; 
+}
+.card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 300px;
+}
+
+.card h2 {
+    text-align: center;
+    color: #333;
+}
+
+.card form {
+    display: flex;
+    flex-direction: column;
+}
+
+.card label {
+    margin-bottom: 8px;
+    color: #B4886B;
+    font-weight: bold;
+}
+
+.card input {
+    padding: 8px;
+    margin-bottom: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.card button {
+    background-color: #3498db;
+    color: #fff;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.card button:hover {
+    background-color: #2980b9;
+}
+#username,#password{
+   color: #2980b9;
+}
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+}
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column; /* Chuyển sang hướng dọc khi trên điện thoại */
+  max-width: 1200px;
+  margin: 20px auto;
+}
+
+.sidebar {
+  width: 100%; /* Sử dụng 100% chiều rộng khi trên điện thoại */
+  background-color: #555;
+  color: #fff;
+  display: flex;
+  justify-content: space-around; /* Canh giữa các biểu tượng */
+  align-items: center;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.content-display {
+  display: none;
+  border: 1px solid #ccc;
+  padding: 20px;
+  background-color: #3498db;
+  border-radius: 10px;
+}
+
+.icon {
+  margin: 10px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.icon:hover {
+  background-color: #555;
+}
+
+.friend-item {
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.friend-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.friend-item:hover {
+  background-color: #b97171;
+}
