@@ -2,7 +2,6 @@ const express = require('express');
 const app= express();
 const socket = require('socket.io');
 require('dotenv').config();
-
 const server = app.listen(3000,()=>{
     console.log('Server running');
 })
@@ -27,43 +26,47 @@ app.use('/',userRoute);
 //socket io workiong with signaling server
 
 // Đối tượng lưu trữ các kết nối
-let OnlineUser = {};
-
+const activeUsers ={};
 var io= socket(server);
-io.on("connection",(socket)=>{
-    socket.on('Login', (userLoggin) => {
-        OnlineUser[userLoggin] = socket.id;
+io.on('connection', (socket) => {
+    // Handle login
+    socket.on('login', (userLoggin) => {
+        activeUsers[userLoggin] = socket.id;
         console.log(`User ${userLoggin} logged in.`);
     });
-       // Người gọi gửi offer cho người được gọi
-    socket.on('offer',(data)=>{
-        const {targetUserId,offer}=data;
-        const targetSocketId=OnlineUser[targetUserId];
-        //da co offer
-        io.to(targetSocketId).emit('offer',{offer});
+  
+
+    socket.on('offer', (data) => {
+      const {targetUserId,offer}=data;
+      const targetSocketId=activeUsers[targetUserId];
+      console.log(offer)
+      //da co offer
+      io.to(targetSocketId).emit('offer',{offer});
     });
-     // Người được gọi gửi answer cho người gọi
+  
+    // Handle video answer
     socket.on('answer', (data) => {
-        const { targetUserId, answer } = data;
+      const { targetUserId, answer } = data;
         io.to(targetUserId).emit('answer', { answer });
     });
-     // Cả hai đối tác truyền ice candidate cho nhau
-     socket.on('icecandidate', (data) => {
-        const { targetUserId, candidate } = data;
-        io.to(targetUserId).emit('icecandidate', { candidate });
-    });
-     // Ngắt kết nối khi người dùng thoát trình duyệt
+  
+    // Handle ICE candidate
+    socket.on('ice-candidate', (data) => {
+      const { targetUserId, candidate } = data;
+      io.to(targetUserId).emit('icecandidate', { candidate });
+    })
+  
+    // Handle disconnect
     socket.on('disconnect', () => {
         console.log(`User disconnected: ${socket.id}`);
         const userId = findUserIdBySocketId(socket.id);
         if (userId) {
-            delete OnlineUser[userId];
+            delete activeUsers[userId];
         }
     });
-   
-});
+  });
 function findUserIdBySocketId(socketId) {
-    for (const [userId, connectedSocketId] of Object.entries(OnlineUser)) {
+    for (const [userId, connectedSocketId] of Object.entries(activeUsers)) {
         if (connectedSocketId === socketId) {
             return userId;
         }

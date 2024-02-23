@@ -49,10 +49,10 @@
                 </ul>
             </div>
         </div>
-        <div id="video-chat-form">
+        <div id="video-container" style="display: none;">
             <div id="video-chat-rooms">
-                <video id="local-video"autoplay playsinline></video>
-                <video id="peer-video"autoplay playsinline></video>
+                <video id="local-video"autoplay muted></video>
+                <video id="remoteVideo"autoplay></video>
             </div>
             <div id="btn-group" style="display: none;">
                 <button id="muteButton">Tắt tiếng</button>
@@ -61,6 +61,8 @@
             </div>
         </div>
     </div>
+    
+    
 <script>
     function showMainContent(contentId) {
         var contents = document.querySelectorAll('.content-display');
