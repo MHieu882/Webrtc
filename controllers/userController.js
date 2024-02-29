@@ -1,7 +1,6 @@
 
 const bcrypt = require('bcrypt');
 const User = require('../models/userModel');
-// const Chat=require('../models/')
 const session = require('express-session');
 
 const loadIndex=async(req,res)=>{
@@ -16,13 +15,6 @@ const loadIndex=async(req,res)=>{
 const loadlogin= async(req,res)=>{
     try {
         res.render('login')
-    } catch (error) {
-        console.log(error.message);
-    }
-}
-const loadCall= async(req,res)=>{
-    try {
-        res.render('call')
     } catch (error) {
         console.log(error.message);
     }
@@ -85,7 +77,6 @@ const logout = async(req, res) =>{
         console.log(error.message);
     }
 }
-
 module.exports={
     loadIndex,
     loadlogin,
@@ -93,5 +84,4 @@ module.exports={
     login,
     register,
     logout,
-    loadCall,
 }

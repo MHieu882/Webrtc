@@ -9,50 +9,51 @@
         </div>
 
         <div class="main-content">
+            <!-- home -->
             <div id="Homecontent"class="content-display">
-                <h4>Welcom <%= username %></h4>
+                <h4 >Welcom <%= username %></h4>
             </div>
+            <!-- list friend -->
             <div id="friendContent" class="content-display">
+                <ul class="friend-list" >
+                    <% users.forEach(user => { %>
+                        <li class="friend-item" >
+                            <span class="username" onclick="showChatContainer('<%= user %>')">
+                                <%= user %>
+                           </span>
+                    <% }); %>
+                </ul>
+            </div>
+            <!--List  message -->
+            <div id="messageContent" class="content-display">
                 <ul class="friend-list">
                     <% users.forEach(user => { %>
                         <li class="friend-item">
-                            <%= user %>   
-                            <i class="fa-solid fa-video icon" onclick="callUser(`<%= user %>`)"></i>
-                        </li>         
+                            <span class="username" onclick="showChatContainer('<%= user %>')">
+                                 <%= user %>
+                            </span>
+                        </li>
                     <% }); %>
-                   
                 </ul>
             </div>
-            <div id="messageContent" class="content-display">
-                <!-- Message content goes here -->
-                <ul class="friend-list">
-                    <% users.forEach(user => { %>
-                    <li class="friend-item">
-                            <%= user %>
-                            lassmessage
-                    </li>     
-                    <% }); %>
-                </ul> 
-            </div>
+              <!--user information -->
             <div id="userInfoContent" class="content-display">
-                <!-- User Info content goes here -->
                 <ul class="friend-list">
                     <h4> <%= username %></h4>
-
                     <li class="friend-item"> 
                         <i class="fa-solid fa-address-card "></i>
                     </li>
                     <li class="friend-item">
                         <a href="/logout"> dang xuat</a>
-                        <!-- <i class="fa-solid fa-right-to-bracket icon" href></i> -->
                     </li>
                 </ul>
             </div>
         </div>
-        <div id="video-container" style="display: none;">
+        <!--Call video -->
+        <div id="video-container">
             <div id="video-chat-rooms">
                 <video id="local-video"autoplay muted></video>
-                <video id="remoteVideo"autoplay></video>
+                <video id="remote-Video"></video>
             </div>
             <div id="btn-group" style="display: none;">
                 <button id="muteButton">Tắt tiếng</button>
@@ -61,19 +62,27 @@
             </div>
         </div>
     </div>
-    
-    
-<script>
-    function showMainContent(contentId) {
-        var contents = document.querySelectorAll('.content-display');
-        contents.forEach(function (content) {
-            content.style.display = 'none';
-        });
-        var activeContent = document.getElementById(contentId);
-        activeContent.style.display = 'block';
-    }
+    <div id="chatContainer" class="content-display">
+        <i class="fa-solid fa-video icon" onclick="callUser()"></i>
+
+        <div id="chatHeader">
+        </div>
+        <div id="messageContent">
+            <ul id="chatMessages" class="friend-list">
+                <!-- show message -->
+            </ul>
+        </div>
+        <div id="chatInput">
+            <textarea id="messageInput" placeholder="Type your message..."></textarea>
+            <textarea id="target" style="display: none;"></textarea>
+            <button id="sendMessage" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+<script> 
     const userLoggin=`<%=username%>`;
 </script>
+
 <script src="./js/client.js"></script>
 </body>
+
 <%- include('layouts/footer.ejs') %>
