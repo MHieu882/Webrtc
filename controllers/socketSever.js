@@ -1,5 +1,6 @@
 const activeUsers ={};
 const Message = require('../models/MessageModel');
+const User=require('../models/userModel');
 const handleSocketEvents = (socket) => {
     socket.on('Login', (userLoggin) => {
         activeUsers[userLoggin] = socket.id;
@@ -33,7 +34,9 @@ const handleSocketEvents = (socket) => {
         socket.to(targetSocketId).emit('receiveMessage',{message});
     });
     socket.on('getMessage',async(data)=>{
-        const{targetUser}=data
+        const{targetUser}=data;
+        const getavt= await User.findOne({username:targetUser});
+        const avat=getavt.avatar
         const messages = await Message.find(
             {
               $or: [
@@ -43,9 +46,23 @@ const handleSocketEvents = (socket) => {
             },
             { sender: 1, content: 1,receiver:1, _id: 0 } // Chỉ lấy trường sender và content, bỏ qua trường _id
           ).sort({ timestamp: 1 });
-        socket.emit('loadMess',{messages,targetUser})
+        socket.emit('loadMess',{messages,targetUser,avat});
     });
-    
+    socket.on('deleteMessage',async(data)=>
+    {
+        const{targetUser,userLoggin}=data;
+        await Message.deleteMany({ sender:userLoggin, receiver:targetUser })
+        const messages = await Message.find(
+            {
+              $or: [
+                { receiver: targetUser },
+                { sender: targetUser }
+              ]
+            },
+            { sender: 1, content: 1,receiver:1, _id: 0 } // Chỉ lấy trường sender và content, bỏ qua trường _id
+          ).sort({ timestamp: 1 });
+        socket.emit('loadMess',{messages,targetUser});
+    });
     // Handle disconnect
     socket.on('disconnect', () => {
         console.log(`User disconnected: ${socket.id}`);
