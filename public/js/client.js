@@ -6,7 +6,7 @@ navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia 
 // var localStream;
 var peerConnection;
 socket.emit('Login', userLoggin);;
-function callUser() {
+async function callUser() {
   var Username =document.getElementById('target');
   const targetUsername=Username.value.trim();
   var userConfirmed = confirm("Bạn muốn bắt đầu cuộc gọi video không?");
@@ -20,7 +20,6 @@ function callUser() {
       //
       //
       peerConnection = new RTCPeerConnection();
-      peerConnection.onicecandidate = (event) => handleIceCandidate(event, targetUsername);
       peerConnection.ontrack = OnTrackFunction;
       peerConnection.addTrack(stream.getTracks()[0], stream); // audio
       peerConnection.addTrack(stream.getTracks()[1], stream);
@@ -30,6 +29,7 @@ function callUser() {
           socket.emit('offer', { targetUserId: targetUsername, offer, caller: userLoggin });
         })
     })
+    peerConnection.onicecandidate = (event) => handleIceCandidate(event, targetUsername);
     .catch((error) => {
       console.error("Error accessing media devices:", error);
     });  
@@ -53,7 +53,7 @@ socket.on('offer', async (data) => {
         peerConnection.ontrack = OnTrackFunction;
         peerConnection.addTrack(stream.getTracks()[0], stream);
         peerConnection.addTrack(stream.getTracks()[1], stream);
-        peerConnection.setRemoteDescription(data.offer);
+        peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
         peerConnection.createAnswer().then((answer) => {
           peerConnection.setLocalDescription(answer);
           socket.emit('answer', { targetUserId: data.caller, answer });
