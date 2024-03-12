@@ -4,78 +4,101 @@ const remoteVideo = document.getElementById('remoteVideo');
 
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 // var localStream;
-var peerConnection;
-socket.emit('Login', userLoggin);;
+var peerConnection= new RTCPeerConnection();
+var offer;
+
+socket.emit('Login', userLoggin);
+
 async function callUser() {
-  var Username =document.getElementById('target');
-  const targetUsername=Username.value.trim();
-  var userConfirmed = confirm("Bạn muốn bắt đầu cuộc gọi video không?");
+  var Username = document.getElementById('target');
+  const targetUsername = Username.value.trim();
+  var userConfirmed = confirm('Bạn muốn bắt đầu cuộc gọi video không?');
   if (userConfirmed && targetUsername) {
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-    .then((stream) => {
-      localVideo.srcObject = stream;
-      //
-      document.getElementById('videoContainer').style.display = 'flex';
-      document.getElementById('chat-container').style.display = 'none';
-      //
-      //
-      peerConnection = new RTCPeerConnection();
-      peerConnection.ontrack = OnTrackFunction;
-      peerConnection.addTrack(stream.getTracks()[0], stream); // audio
-      peerConnection.addTrack(stream.getTracks()[1], stream);
-      peerConnection.createOffer()
-        .then((offer) => {
-          peerConnection.setLocalDescription(offer);
-          socket.emit('offer', { targetUserId: targetUsername, offer, caller: userLoggin });
-        })
-    })
-    peerConnection.onicecandidate = (event) => handleIceCandidate(event, targetUsername);
-    .catch((error) => {
-      console.error("Error accessing media devices:", error);
-    });  
-}
+    try {
+      offer = await peerConnection.createOffer();
+      socket.emit('offer', {
+        targetUserId: targetUsername,
+        offer,
+        caller: userLoggin,
+      });
+    } catch (error) {
+      console.error('Error accessing media devices:', error);
+    }
+  }
 }
 
-// nhan offer
 socket.on('offer', async (data) => {
   const accept = confirm(`Có cuộc gọi từ ${data.caller}. Chấp nhận?`);
   if (accept) {
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then((stream) => {
-        localVideo.srcObject = stream;
-        localVideo.onloadeddata = (e) => {
-          localVideo.play();
-        };
-        document.getElementById('videoContainer').style.display = 'flex';
-        document.getElementById('chat-container').style.display = 'none';
-        peerConnection = new RTCPeerConnection();
-        peerConnection.onicecandidate = (event) => handleIceCandidate(event, data.caller);
-        peerConnection.ontrack = OnTrackFunction;
-        peerConnection.addTrack(stream.getTracks()[0], stream);
-        peerConnection.addTrack(stream.getTracks()[1], stream);
-        peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-        peerConnection.createAnswer().then((answer) => {
-          peerConnection.setLocalDescription(answer);
-          socket.emit('answer', { targetUserId: data.caller, answer });
-        });
-      })
-      .catch((error) => {
-        console.error("Error accessing media devices:", error);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
       });
+
+      localVideo.srcObject = stream;
+      localVideo.onloadeddata = (e) => {
+        localVideo.play();
+      };
+      document.getElementById('videoContainer').style.display = 'flex';
+      document.getElementById('chat-container').style.display = 'none';
+
+      peerConnection.ontrack = OnTrackFunction;
+      stream.getTracks().forEach((track) => {
+        peerConnection.addTrack(track, stream);
+      });
+
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+
+      socket.emit('answer', {
+        targetUserId: data.caller,
+        answer,
+        answercreater: userLoggin,
+      });
+
+      peerConnection.onicecandidate = (event) =>
+        handleIceCandidate(event, data.caller);
+    } catch (error) {
+      console.error('Error accessing media devices:', error);
+    }
   }
 });
 
-// nhan candidate
-socket.on("candidate", (data) => {
-  const IceCandidate=new RTCIceCandidate(data.candidate)
-  peerConnection.addIceCandidate(IceCandidate)
-    .catch(error => console.error('Error adding ice candidate:', error));
+socket.on('candidate', (data) => {
+  console.log('nhancandidate')
+  console.log(peerConnection);
+  const iceCandidate = new RTCIceCandidate(data.candidate);
+  peerConnection
+    .addIceCandidate(iceCandidate)
+    .catch((error) => console.error('Error adding ice candidate:', error));
 });
 
-// nhận answer
-socket.on("answer",(data)=>{
-  peerConnection.setRemoteDescription(data.answer);
+socket.on('answer', async (data) => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    });
+    localVideo.srcObject = stream;
+    document.getElementById('videoContainer').style.display = 'flex';
+    document.getElementById('chat-container').style.display = 'none';
+
+    await peerConnection.setRemoteDescription(data.answer);
+    await peerConnection.setLocalDescription(offer);
+    peerConnection.ontrack = OnTrackFunction;
+    stream.getTracks().forEach((track) => {
+      peerConnection.addTrack(track, stream);
+    });
+    peerConnection.onicecandidate = (event) =>
+        handleIceCandidate(event, data.answercreater);
+  } catch (error) {
+    console.error('Lỗi khi nhận câu trả lời:', error);
+  }
 });
+
+// Các phần còn lại của code không có thay đổi
 
 const chatMessages = document.getElementById('card-body msg_card_body');
 
@@ -96,6 +119,7 @@ socket.on('receiveMessage', (data) => {
 });
 function handleIceCandidate(event, targetUserId) {
   if (event.candidate !== null) {
+    console.log('gui candidate');
     socket.emit("candidate", { targetUserId, candidate: event.candidate });
   }
 }
@@ -136,6 +160,7 @@ function showChatContainer(targetUser) {
   document.getElementById('message-container').style.display = 'block';
   
   const currentActiveElement = document.querySelector('.active');
+  //set target
   document.getElementById('target').innerHTML = `${targetUser}`;
   if (currentActiveElement) {
       // Remove 'active' class from the current active element
@@ -147,7 +172,6 @@ function showChatContainer(targetUser) {
   }
   socket.emit('getMessage', { targetUser });
   }
- 
 }
 socket.on("loadMess", async(data) => {
   const messages=data.messages;
