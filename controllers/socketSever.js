@@ -13,9 +13,9 @@ const handleSocketEvents = (socket) => {
     });
     // Handle video answer
     socket.on('answer', (data) => {
-        const {targetUserId,answer}=data;
+        const {targetUserId,answer,answercreater}=data;
         const targetSocketId=activeUsers[targetUserId];
-        socket.to(targetSocketId).emit('answer', { answer });
+        socket.to(targetSocketId).emit('answer', { answer ,answercreater});
     });
     socket.on('candidate',(data)=>{
         const { targetUserId, candidate } = data;
