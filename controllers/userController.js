@@ -54,7 +54,8 @@ const register = async (req, res) => {
     const email = await User.findOne({ email: req.body.email });
     if (userData) {
       res.render("register", { message: "Username is already exists!" });
-    } else if (email) {
+    }
+    if (email) {
       res.render("register", { message: "Email is already exists!" });
     } else {
       const passwordHash = await bcrypt.hash(req.body.password, 10);
